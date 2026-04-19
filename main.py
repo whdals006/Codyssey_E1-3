@@ -3,6 +3,7 @@ from core.judge import judge
 from core.normalize import normalize_label
 from input_output.input_handler import get_matrix
 from input_output.json_loader import load_json
+from analysis.performance import run_performance_test
 
 
 # -------------------------
@@ -13,10 +14,10 @@ def run_manual_mode():
     print("# [1] 필터 입력")
     print("#----------------------------------------")
 
-    print("필터 A (3줄 입력)")
+    print("필터 A (3줄 입력, 공백 구분)")
     filter_a = get_matrix(3)
 
-    print("\n필터 B (3줄 입력)")
+    print("\n필터 B (3줄 입력, 공백 구분)")
     filter_b = get_matrix(3)
 
     print("\n#----------------------------------------")
@@ -36,7 +37,11 @@ def run_manual_mode():
 
     print(f"A 점수: {score_a}")
     print(f"B 점수: {score_b}")
-    print(f"판정: {result}")
+
+    if result == "UNDECIDED":
+        print("판정: UNDECIDED (|A-B| < epsilon)")
+    else:
+        print(f"판정: {result}")
 
 
 # -------------------------
@@ -48,30 +53,63 @@ def run_json_mode():
     filters = data["filters"]
     patterns = data["patterns"]
 
+    print("\n#---------------------------------------")
+    print("# [1] 필터 로드")
+    print("#---------------------------------------")
+
+    for key in filters:
+        print(f"✓ {key} 필터 로드 완료 (Cross, X)")
+
     total = 0
     passed = 0
     failed_cases = []
 
     print("\n#---------------------------------------")
-    print("# [패턴 분석]")
+    print("# [2] 패턴 분석 (라벨 정규화 적용)")
     print("#---------------------------------------")
 
     for key, value in patterns.items():
         total += 1
 
-        size = int(key.split("_")[1])
+        # size 추출 (size_13_1 → 13)
+        try:
+            size = int(key.split("_")[1])
+        except:
+            print(f"{key}: size 파싱 실패 → FAIL")
+            failed_cases.append(key)
+            continue
 
-        pattern = value["input"]
-        expected = normalize_label(value["expected"])
+        pattern = value.get("input")
+        expected_raw = value.get("expected")
 
-        filter_data = filters[f"size_{size}"]
+        if pattern is None or expected_raw is None:
+            print(f"{key}: 데이터 누락 → FAIL")
+            failed_cases.append(key)
+            continue
 
-        filter_cross = filter_data["cross"]
-        filter_x = filter_data["x"]
+        expected = normalize_label(expected_raw)
 
+        # 필터 가져오기
+        filter_data = filters.get(f"size_{size}")
+        if filter_data is None:
+            print(f"{key}: 필터 없음(size_{size}) → FAIL")
+            failed_cases.append(key)
+            continue
+
+        filter_cross = filter_data.get("cross")
+        filter_x = filter_data.get("x")
+
+        # 크기 검증
+        if len(pattern) != size or len(pattern[0]) != size:
+            print(f"{key}: 패턴 크기 불일치 → FAIL")
+            failed_cases.append(key)
+            continue
+
+        # MAC 계산
         score_cross = mac_operation(pattern, filter_cross)
         score_x = mac_operation(pattern, filter_x)
 
+        # 판정
         result = judge(score_cross, score_x)
 
         if result == "A":
@@ -81,6 +119,7 @@ def run_json_mode():
         else:
             predicted = "UNDECIDED"
 
+        # PASS / FAIL
         if predicted == expected:
             status = "PASS"
             passed += 1
@@ -93,8 +132,9 @@ def run_json_mode():
         print(f"X 점수: {score_x}")
         print(f"판정: {predicted} | expected: {expected} | {status}")
 
+    # 결과 요약
     print("\n#---------------------------------------")
-    print("# [결과 요약]")
+    print("# [3] 결과 요약")
     print("#---------------------------------------")
 
     print(f"총 테스트: {total}")
@@ -105,6 +145,9 @@ def run_json_mode():
         print("실패 케이스:")
         for case in failed_cases:
             print("-", case)
+
+    # 성능 분석 실행
+    run_performance_test()
 
 
 # -------------------------
