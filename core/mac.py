@@ -6,3 +6,5 @@ def mac_operation(pattern, filt):   # 실제 계산을 담당하는 로직
             total += pattern[i][j] * filt[i][j]     # 같은 위치끼리 곱해서 모두 더하기
 
     return total
+
+# 이 코드는 이차원 리스트의 모든 원소를 하나씩 방문하여 계산하는 **'이중 반복문의 정석'**과 같은 코드
