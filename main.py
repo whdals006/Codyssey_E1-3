@@ -4,6 +4,7 @@ from core.normalize import normalize_label
 from input_output.input_handler import get_matrix
 from input_output.json_loader import load_json
 from analysis.performance import run_performance_test
+from analysis.performance import measure_mac_time
 
 
 # -------------------------
@@ -33,10 +34,13 @@ def run_manual_mode():
     score_a = mac_operation(pattern, filter_a)
     score_b = mac_operation(pattern, filter_b)
 
+    avg_time = measure_mac_time(pattern, filter_a)
+
     result = judge(score_a, score_b)
 
     print(f"A 점수: {score_a}")
     print(f"B 점수: {score_b}")
+    print(f"연산 시간(평균/10회): {avg_time:.6f} ms")
 
     if result == "UNDECIDED":
         print("판정: UNDECIDED (|A-B| < epsilon)")
@@ -50,7 +54,7 @@ def run_manual_mode():
 def run_json_mode():
     data = load_json()
 
-    filters = data["filters"]
+    filters = data["filters"]       # data.json 파일의 "filters"의 value 값을 변수 filters 에 담는다.
     patterns = data["patterns"]
 
     print("\n#---------------------------------------")
@@ -68,18 +72,18 @@ def run_json_mode():
     print("# [2] 패턴 분석 (라벨 정규화 적용)")
     print("#---------------------------------------")
 
-    for key, value in patterns.items():
+    for key, value in patterns.items():     # patterns에 있는 key값과 value값을 꺼내서 각각 key, value 변수에 넣는다.
         total += 1
 
         # size 추출 (size_13_1 → 13)
         try:
-            size = int(key.split("_")[1])
+            size = int(key.split("_")[1])       # "_"를 기준으로 잘라서, 인덱스1번자리, 즉 2번째 자리 값을 정수로 만들어서 size에 저장.
         except:
             print(f"{key}: size 파싱 실패 → FAIL")
             failed_cases.append(key)
             continue
 
-        pattern = value.get("input")
+        pattern = value.get("input")            # 변수 value에 있는 "input"의 value값을 변수 pattern에 저장. (찾는 key값이 없으면 none을 출력)
         expected_raw = value.get("expected")
 
         if pattern is None or expected_raw is None:
