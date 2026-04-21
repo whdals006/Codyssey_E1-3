@@ -132,7 +132,7 @@ mini-npu-simulator/
 │   ├── judge.py           # 점수 비교 / 판정
 │   └── normalize.py       # 라벨 정규화
 
-├── io/  
+├── input_output/  
 │   ├── input_handler.py   # 사용자 입력 (3x3) 처리
 │   └── json_loader.py     # data.json 읽기 / 검증
 
