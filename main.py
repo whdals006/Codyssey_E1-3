@@ -75,7 +75,7 @@ def run_json_mode():
     for key, value in patterns.items():     # patterns에 있는 key값과 value값을 꺼내서 각각 key, value 변수에 넣는다.
         total += 1
 
-        # size 추출 (size_13_1 → 13)
+        # size 추출 (size_25_1 → 25)
         try:
             size = int(key.split("_")[1])       # "_"를 기준으로 잘라서, 인덱스1번자리, 즉 2번째 자리 값을 정수로 만들어서 size에 저장.
         except:
