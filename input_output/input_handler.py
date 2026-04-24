@@ -16,11 +16,6 @@ def get_matrix(size):         # 만들고 싶은 행렬의 크기(가로, 세로
                 print("입력 오류: 숫자만 입력하세요.")
                 continue
 
-            # 2️⃣ 0, 1만 허용
-            if any(x not in (0, 1) for x in row):
-                print("입력 오류: 0과 1만 입력할 수 있습니다.")
-                continue
-
             matrix.append(row)
             break
 
